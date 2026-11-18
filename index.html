@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Despensa Inteligente</title>
+  <style>
+    body { font-family: sans-serif; max-width: 480px; margin: 30px auto; padding: 0 16px; background: #f5f7fa; color: #222; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
+    button { background: #2e7d32; color: white; border: none; font-weight: bold; cursor: pointer; }
+    button:hover { background: #1b5e20; }
+    .resultado { margin-top: 20px; padding: 14px; background: #e8f5e9; border-radius: 8px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🥗 Evite o Desperdício</h2>
+    <p>Digite o código de barras e a validade do alimento:</p>
+
+    <input type="text" id="codigo" placeholder="Ex: 7891000100103" value="7891000100103">
+    <input type="date" id="validade">
+    <button onclick="buscarAlimento()">Verificar Alimento</button>
+
+    <div id="resultado" class="resultado"></div>
+  </div>
+
+  <script>
+    async function buscarAlimento() {
+      const codigo = document.getElementById('codigo').value.trim();
+      const validade = document.getElementById('validade').value;
+      const box = document.getElementById('resultado');
+
+      if (!codigo) {
+        alert('Digite um código de barras!');
+        return;
+      }
+
+      box.style.display = 'block';
+      box.innerHTML = 'Buscando alimento...';
+
+      try {
+        const resposta = await fetch(`https://world.openfoodfacts.org/api/v2/product/${codigo}.json?fields=product_name,brands`);
+        const dados = await resposta.json();
+
+        if (dados.status === 1 && dados.product) {
+          const nome = dados.product.product_name || 'Produto sem nome cadastrado';
+          const marca = dados.product.brands || '';
+
+          let textoValidade = '';
+          if (validade) {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const dataVal = new Date(validade + 'T00:00:00');
+            const dias = Math.ceil((dataVal - hoje) / (1000 * 60 * 60 * 24));
+            textoValidade = dias >= 0
+              ? `<p>⏳ Vence em <strong>${dias} dia(s)</strong>.</p>`
+              : `<p>⚠️ Este alimento já venceu há ${Math.abs(dias)} dia(s)!</p>`;
+          }
+
+          box.innerHTML = `
+            <h3>${nome} ${marca ? `(${marca})` : ''}</h3>
+            ${textoValidade}
+            <a href="https://www.tudogostoso.com.br/busca?q=${encodeURIComponent(nome)}" target="_blank">Ver receitas com ${nome} →</a>
+          `;
+        } else {
+          box.innerHTML = '❌ Produto não encontrado na base de dados. Tente outro código!';
+        }
+      } catch (erro) {
+        box.innerHTML = '⚠️ Erro ao buscar o produto. Verifique sua internet.';
+      }
+    }
+  </script>
+</body>
+</html>
