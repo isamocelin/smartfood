@@ -7,61 +7,124 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background: #f0f4f1; color: #1f2937; margin: 0; padding: 20px 14px; display: flex; justify-content: center; }
-    .app-container { width: 100%; max-width: 440px; background: #ffffff; border-radius: 16px; padding: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    header { text-align: center; margin-bottom: 20px; }
+    body { background: #f0f4f1; color: #1f2937; margin: 0; padding: 16px 12px; display: flex; justify-content: center; }
+    .app-container { width: 100%; max-width: 460px; background: #ffffff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    header { text-align: center; margin-bottom: 16px; }
     header h1 { margin: 0; color: #1b5e20; font-size: 26px; }
-    header p { margin: 4px 0 0; color: #6b7280; font-size: 14px; }
-    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+    header p { margin: 4px 0 0; color: #6b7280; font-size: 13px; }
+
+    /* Menu de Abas */
+    .tabs { display: flex; gap: 6px; margin-bottom: 18px; background: #e5e7eb; padding: 4px; border-radius: 10px; }
+    .tab-btn { flex: 1; padding: 10px 6px; border: none; border-radius: 8px; background: transparent; font-weight: 600; font-size: 13px; color: #4b5563; cursor: pointer; transition: 0.2s; }
+    .tab-btn.active { background: #ffffff; color: #1b5e20; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Botões e Campos */
+    .btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
     .btn-primary { background: #2e7d32; color: white; }
     .btn-primary:hover { background: #1b5e20; }
+    .btn-secondary { background: #f3f4f6; color: #1f2937; border: 1px solid #d1d5db; }
     .btn-stop { background: #dc2626; color: white; display: none; }
-    #reader { width: 100%; margin-top: 14px; border-radius: 12px; overflow: hidden; }
-    .etapa { display: none; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+
+    #reader { width: 100%; margin-top: 12px; border-radius: 12px; overflow: hidden; }
+    .etapa { display: none; margin-top: 18px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
     .produto-box { display: flex; align-items: center; gap: 12px; background: #e8f5e9; padding: 12px; border-radius: 10px; }
-    .produto-box img { width: 56px; height: 56px; object-fit: contain; border-radius: 8px; background: white; }
-    label { display: block; margin-top: 14px; font-weight: 600; font-size: 14px; }
-    input[type="date"], input[type="text"] { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; }
-    .alerta-validade { padding: 12px; border-radius: 8px; font-weight: 600; margin-bottom: 14px; }
+    .produto-box img { width: 54px; height: 54px; object-fit: contain; border-radius: 8px; background: white; }
+
+    label { display: block; margin-top: 12px; font-weight: 600; font-size: 13px; color: #374151; }
+    input[type="date"], input[type="text"], textarea { width: 100%; padding: 11px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; }
+    textarea { resize: vertical; min-height: 75px; }
+
+    .alerta-validade { padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 14px; }
     .urgente { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
     .ok { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-    .receita-link { display: block; text-align: center; text-decoration: none; background: #ff6f00; color: white; padding: 13px; border-radius: 10px; font-weight: bold; margin-top: 10px; }
-    .receita-link.secundario { background: #374151; }
+
+    /* Cards de Receita */
+    .receita-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-top: 12px; }
+    .receita-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .receita-card h4 { margin: 0; color: #1b5e20; font-size: 16px; }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
+    .badge-app { background: #dcfce7; color: #166534; }
+    .badge-user { background: #fef3c7; color: #92400e; }
+    .receita-meta { font-size: 12px; color: #6b7280; margin: 4px 0 10px; }
+    .receita-card p { margin: 6px 0; font-size: 14px; line-height: 1.45; }
   </style>
 </head>
 <body>
   <div class="app-container">
     <header>
       <h1>🥗 SmartFood</h1>
-      <p>Aponte a câmera para o código de barras e evite o desperdício</p>
+      <p>Escaneie, controle a validade e crie receitas sem desperdício</p>
     </header>
 
-    <!-- ETAPA 1: Câmera -->
-    <button id="btn-scan" class="btn btn-primary" onclick="iniciarCamera()">📷 Escanear Código de Barras</button>
-    <button id="btn-stop" class="btn btn-stop" onclick="pararCamera()">✖ Fechar Câmera</button>
-    <div id="reader"></div>
-    <p id="status-leitura" style="text-align:center; color:#4b5563; font-size:14px;"></p>
-
-    <!-- ETAPA 2: Alimento identificado + Data de Validade -->
-    <div id="etapa-validade" class="etapa">
-      <div id="info-produto" class="produto-box"></div>
-
-      <div id="campo-manual" style="display:none;">
-        <label for="nome-manual">Produto não encontrado na base. Qual é o alimento?</label>
-        <input type="text" id="nome-manual" placeholder="Ex: Leite condensado, Iogurte...">
-      </div>
-
-      <label for="data-validade">📅 Qual é a data de validade?</label>
-      <input type="date" id="data-validade">
-
-      <button class="btn btn-primary" onclick="mostrarReceitas()">🍳 Ver Receitas</button>
+    <!-- Navegação -->
+    <div class="tabs">
+      <button id="nav-scanner" class="tab-btn active" onclick="abrirAba('scanner')">📷 Escanear</button>
+      <button id="nav-adicionar" class="tab-btn" onclick="abrirAba('adicionar')">➕ Nova Receita</button>
+      <button id="nav-livro" class="tab-btn" onclick="abrirAba('livro')">📖 Receitas</button>
     </div>
 
-    <!-- ETAPA 3: Sugestões de Receitas -->
-    <div id="etapa-receitas" class="etapa">
-      <div id="aviso-dias" class="alerta-validade"></div>
-      <h3 style="margin: 0 0 8px;">Receitas para aproveitar agora:</h3>
-      <div id="lista-receitas"></div>
+    <!-- ABA 1: SCANNER E FLUXO PRINCIPAL -->
+    <div id="tab-scanner" class="tab-content active">
+      <button id="btn-scan" class="btn btn-primary" onclick="iniciarCamera()">📷 Escanear Código de Barras</button>
+      <button id="btn-stop" class="btn btn-stop" onclick="pararCamera()">✖ Fechar Câmera</button>
+      <div id="reader"></div>
+      <p id="status-leitura" style="text-align:center; color:#4b5563; font-size:14px;"></p>
+
+      <!-- Etapa 2: Validade -->
+      <div id="etapa-validade" class="etapa">
+        <div id="info-produto" class="produto-box"></div>
+
+        <div id="campo-manual" style="display:none;">
+          <label for="nome-manual">Produto não encontrado. Qual é o alimento?</label>
+          <input type="text" id="nome-manual" placeholder="Ex: Leite condensado, Tomate, Pão...">
+        </div>
+
+        <label for="data-validade">📅 Qual é a data de validade?</label>
+        <input type="date" id="data-validade">
+
+        <button class="btn btn-primary" onclick="mostrarReceitas()">🍳 Ver Receitas no App</button>
+      </div>
+
+      <!-- Etapa 3: Receitas internas -->
+      <div id="etapa-receitas" class="etapa">
+        <div id="aviso-dias" class="alerta-validade"></div>
+        <h3 style="margin: 0 0 6px; font-size: 17px;">Receitas sugeridas:</h3>
+        <div id="lista-receitas"></div>
+        <button id="btn-sugerir-nova" class="btn btn-secondary" onclick="irParaCadastroComIngrediente()">
+          💡 Adicionar minha própria ideia para este alimento
+        </button>
+      </div>
+    </div>
+
+    <!-- ABA 2: ADICIONAR IDEIA DE RECEITA -->
+    <div id="tab-adicionar" class="tab-content">
+      <h3 style="margin-top:0; font-size:17px;">Compartilhe uma ideia de receita</h3>
+      <p style="font-size:13px; color:#6b7280; margin-top:-6px;">Sua receita ficará salva no app e aparecerá quando esse alimento for escaneado.</p>
+
+      <label for="rec-titulo">Nome da receita *</label>
+      <input type="text" id="rec-titulo" placeholder="Ex: Pudim rápido de caneca">
+
+      <label for="rec-chave">Ingrediente principal (palavra-chave) *</label>
+      <input type="text" id="rec-chave" placeholder="Ex: leite condensado, banana, pão, tomate...">
+
+      <label for="rec-tempo">Tempo de preparo</label>
+      <input type="text" id="rec-tempo" placeholder="Ex: 15 minutos">
+
+      <label for="rec-ingredientes">Ingredientes *</label>
+      <textarea id="rec-ingredientes" placeholder="Ex: 3 colheres de leite condensado, 1 ovo, 3 colheres de leite..."></textarea>
+
+      <label for="rec-preparo">Modo de preparo *</label>
+      <textarea id="rec-preparo" placeholder="Explique passo a passo como fazer..."></textarea>
+
+      <button class="btn btn-primary" onclick="salvarNovaReceita()">💾 Salvar Receita no SmartFood</button>
+    </div>
+
+    <!-- ABA 3: LIVRO DE RECEITAS -->
+    <div id="tab-livro" class="tab-content">
+      <input type="text" id="filtro-receitas" placeholder="🔎 Buscar por ingrediente ou nome..." oninput="renderizarLivroReceitas()">
+      <div id="todas-receitas-lista"></div>
     </div>
   </div>
 
@@ -69,6 +132,108 @@
     let scanner = null;
     let alimentoAtual = "";
 
+    // Banco inicial de receitas nativas do SmartFood
+    const receitasNativas = [
+      {
+        titulo: "Brigadeiro de Colher Rápido",
+        chave: "leite condensado, chocolate, achocolatado, cacau",
+        tempo: "10 min",
+        ingredientes: "1 caixa de leite condensado, 2 colheres (sopa) de achocolatado ou cacau em pó, 1 colher (sopa) de manteiga.",
+        preparo: "Misture tudo em uma panela em fogo baixo, mexendo sem parar até desgrudar do fundo. Sirva quente ou frio.",
+        origem: "app",
+        coringa: false
+      },
+      {
+        titulo: "Molho Caseiro Turbinado",
+        chave: "molho de tomate, extrato, tomate, macarrao, massa",
+        tempo: "15 min",
+        ingredientes: "1 sachê de molho ou extrato de tomate, 1 dente de alho picado, cebola, azeite, sal e orégano.",
+        preparo: "Refogue o alho e a cebola no azeite, despeje o molho de tomate, adicione meia xícara de água e deixe apurar por 10 minutos.",
+        origem: "app",
+        coringa: false
+      },
+      {
+        titulo: "Torrada Temperada de Forno ou AirFryer",
+        chave: "pao, bisnaguinha, baguete, torrada",
+        tempo: "10 min",
+        ingredientes: "Fatias de pão amanhecido, manteiga ou azeite, alho amassado e orégano.",
+        preparo: "Misture a manteiga com alho e orégano, passe nas fatias de pão e leve ao forno ou AirFryer a 180°C por 6 a 8 minutos até dourar.",
+        origem: "app",
+        coringa: false
+      },
+      {
+        titulo: "Panqueca Doce de Banana (2 Ingredientes)",
+        chave: "banana, aveia, ovo",
+        tempo: "10 min",
+        ingredientes: "1 banana madura amassada, 1 ovo e canela a gosto (opcional: 1 colher de aveia).",
+        preparo: "Amasse bem a banana, misture com o ovo até ficar homogêneo e doure pequenas porções em uma frigideira untada.",
+        origem: "app",
+        coringa: false
+      },
+      {
+        titulo: "Pavê Simples de Biscoito",
+        chave: "biscoito, bolacha, maisena, leite, creme de leite",
+        tempo: "20 min",
+        ingredientes: "1 pacote de biscoito maisena ou Maria, 1 xícara de leite, 1 caixa de creme de leite, 1 caixa de leite condensado.",
+        preparo: "Misture o leite condensado com o creme de leite. Em um refratário, alterne camadas de biscoito umedecido no leite e camadas do creme. Leve à geladeira.",
+        origem: "app",
+        coringa: false
+      },
+      {
+        titulo: "Omelete Recheado de Geladeira",
+        chave: "ovo, queijo, mussarela, presunto, requeijao, legume",
+        tempo: "10 min",
+        ingredientes: "2 ovos, sal, pimenta e sobras de queijo, presunto, tomate ou legumes picados.",
+        preparo: "Bata os ovos com sal, despeje na frigideira untada em fogo baixo, coloque o recheio por cima e dobre ao meio quando firmar.",
+        origem: "app",
+        coringa: true
+      },
+      {
+        titulo: "Vitamina Cremosa Aproveita-Tudo",
+        chave: "leite, iogurte, fruta, maca, mamao, morango, banana",
+        tempo: "5 min",
+        ingredientes: "1 copo de leite ou iogurte, 1 fruta madura picada e mel ou açúcar a gosto.",
+        preparo: "Bata todos os ingredientes no liquidificador com algumas pedras de gelo até ficar cremoso.",
+        origem: "app",
+        coringa: true
+      },
+      {
+        titulo: "Arroz de Forno Cremoso",
+        chave: "arroz, frango, milho, ervilha, requeijao, queijo",
+        tempo: "25 min",
+        ingredientes: "2 xícaras de arroz cozido, 1 copo de requeijão ou creme de leite, milho, ervilha, frango desfiado ou queijo.",
+        preparo: "Misture tudo em uma travessa, cubra com queijo ralado e leve ao forno médio por 15 minutos para gratinar.",
+        origem: "app",
+        coringa: true
+      }
+    ];
+
+    function obterTodasReceitas() {
+      const salvas = JSON.parse(localStorage.getItem("smartfood_receitas_usuarios") || "[]");
+      return [...salvas, ...receitasNativas];
+    }
+
+    function normalizar(texto) {
+      return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    // Navegação entre abas
+    function abrirAba(nomeAba) {
+      if (nomeAba !== "scanner") {
+        pararCamera();
+      }
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+
+      document.getElementById(`nav-${nomeAba}`).classList.add("active");
+      document.getElementById(`tab-${nomeAba}`).classList.add("active");
+
+      if (nomeAba === "livro") {
+        renderizarLivroReceitas();
+      }
+    }
+
+    // Câmera e Código de Barras
     function iniciarCamera() {
       document.getElementById("etapa-validade").style.display = "none";
       document.getElementById("etapa-receitas").style.display = "none";
@@ -86,7 +251,7 @@
         },
         () => {}
       ).catch(() => {
-        document.getElementById("status-leitura").innerText = "⚠️ Não foi possível abrir a câmera. Permita o acesso nas configurações do navegador.";
+        document.getElementById("status-leitura").innerText = "⚠️ Não foi possível abrir a câmera. Verifique as permissões do navegador.";
         document.getElementById("btn-scan").style.display = "block";
         document.getElementById("btn-stop").style.display = "none";
       });
@@ -111,30 +276,46 @@
         const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${codigo}.json?fields=product_name,product_name_pt,brands,image_front_small_url`);
         const data = await res.json();
 
-        const etapaValidade = document.getElementById("etapa-validade");
+        document.getElementById("etapa-validade").style.display = "block";
+        status.innerText = "";
+
         const infoProduto = document.getElementById("info-produto");
         const campoManual = document.getElementById("campo-manual");
-
-        etapaValidade.style.display = "block";
-        status.innerText = "";
 
         if (data.status === 1 && data.product) {
           alimentoAtual = data.product.product_name_pt || data.product.product_name || "Alimento identificado";
           const marca = data.product.brands ? ` • ${data.product.brands}` : "";
-          const img = data.product.image_front_small_url
-            ? `<img src="${data.product.image_front_small_url}" alt="Foto do produto">`
-            : "";
+          const img = data.product.image_front_small_url ? `<img src="${data.product.image_front_small_url}" alt="Produto">` : "";
 
-          infoProduto.innerHTML = `${img}<div><strong>${alimentoAtual}</strong><div style="font-size:13px;color:#4b5563;">Cód: ${codigo}${marca}</div></div>`;
+          infoProduto.innerHTML = `${img}<div><strong>${alimentoAtual}</strong><div style="font-size:12px;color:#4b5563;">Cód: ${codigo}${marca}</div></div>`;
           campoManual.style.display = "none";
         } else {
           alimentoAtual = "";
-          infoProduto.innerHTML = `<div><strong>Código lido: ${codigo}</strong><div style="font-size:13px;color:#4b5563;">Ainda não cadastrado no banco público.</div></div>`;
+          infoProduto.innerHTML = `<div><strong>Código lido: ${codigo}</strong><div style="font-size:12px;color:#4b5563;">Produto não encontrado no banco público.</div></div>`;
           campoManual.style.display = "block";
         }
       } catch (e) {
-        status.innerText = "⚠️ Erro de conexão ao buscar o alimento.";
+        status.innerText = "⚠️ Erro de conexão ao identificar o produto.";
       }
+    }
+
+    // Busca e exibição das receitas internas
+    function criarHtmlCardReceita(rec) {
+      const badge = rec.origem === "usuario"
+        ? `<span class="badge badge-user">👤 Ideia da Comunidade</span>`
+        : `<span class="badge badge-app">🥗 SmartFood</span>`;
+
+      return `
+        <div class="receita-card">
+          <div class="receita-header">
+            <h4>${rec.titulo}</h4>
+            ${badge}
+          </div>
+          <div class="receita-meta">⏱️ ${rec.tempo || "Rápido"} • Base: ${rec.chave}</div>
+          <p><strong>Ingredientes:</strong> ${rec.ingredientes}</p>
+          <p><strong>Preparo:</strong> ${rec.preparo}</p>
+        </div>
+      `;
     }
 
     function mostrarReceitas() {
@@ -143,14 +324,17 @@
       const alimento = alimentoAtual || nomeDigitado;
 
       if (!alimento) {
-        alert("Informe o nome do alimento para buscar receitas.");
+        alert("Informe o nome do alimento.");
         return;
       }
       if (!validade) {
-        alert("Selecione a data de validade do alimento.");
+        alert("Selecione a data de validade.");
         return;
       }
 
+      alimentoAtual = alimento;
+
+      // Cálculo da validade
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
       const dataVal = new Date(validade + "T00:00:00");
@@ -159,26 +343,94 @@
       const aviso = document.getElementById("aviso-dias");
       if (dias < 0) {
         aviso.className = "alerta-validade urgente";
-        aviso.innerText = `⚠️ Atenção: este alimento venceu há ${Math.abs(dias)} dia(s). Verifique se ainda está próprio para consumo.`;
+        aviso.innerText = `⚠️ Atenção: este alimento venceu há ${Math.abs(dias)} dia(s). Confira se ainda está próprio para consumo.`;
       } else if (dias <= 3) {
         aviso.className = "alerta-validade urgente";
         aviso.innerText = `⏳ Urgente: vence em ${dias} dia(s)! Ideal preparar hoje.`;
       } else {
         aviso.className = "alerta-validade ok";
-        aviso.innerText = `✅ Vence em ${dias} dia(s). Veja ideias para já ir planejando:`;
+        aviso.innerText = `✅ Vence em ${dias} dia(s). Veja ideias para aproveitar ${alimento}:`;
       }
 
-      const termo = encodeURIComponent(alimento);
-      document.getElementById("lista-receitas").innerHTML = `
-        <a class="receita-link" href="https://www.tudogostoso.com.br/busca?q=${termo}" target="_blank">
-          🍽️ Ver receitas com ${alimento} (TudoGostoso)
-        </a>
-        <a class="receita-link secundario" href="https://www.google.com/search?q=receitas+faceis+com+${termo}" target="_blank">
-          🔎 Buscar receitas rápidas no Google
-        </a>
-      `;
+      // Filtrar receitas compatíveis no app
+      const termoNorm = normalizar(alimento);
+      const palavrasProduto = termoNorm.split(/\s+/).filter(p => p.length >= 3);
+      const todas = obterTodasReceitas();
+
+      let encontradas = todas.filter(rec => {
+        const chaveNorm = normalizar(rec.chave);
+        return palavrasProduto.some(palavra => chaveNorm.includes(palavra)) || chaveNorm.split(",").some(c => termoNorm.includes(c.trim()) && c.trim().length >= 3);
+      });
+
+      const listaDiv = document.getElementById("lista-receitas");
+      if (encontradas.length > 0) {
+        listaDiv.innerHTML = encontradas.map(criarHtmlCardReceita).join("");
+      } else {
+        const coringas = todas.filter(r => r.coringa);
+        listaDiv.innerHTML = `
+          <p style="font-size:13px; color:#4b5563;">Ainda não temos uma receita específica para <strong>${alimento}</strong>, mas veja estas opções versáteis de aproveitamento (ou cadastre a sua abaixo!):</p>
+          ${coringas.map(criarHtmlCardReceita).join("")}
+        `;
+      }
 
       document.getElementById("etapa-receitas").style.display = "block";
+    }
+
+    // Cadastro de novas receitas pelos usuários
+    function irParaCadastroComIngrediente() {
+      document.getElementById("rec-chave").value = alimentoAtual;
+      abrirAba("adicionar");
+    }
+
+    function salvarNovaReceita() {
+      const titulo = document.getElementById("rec-titulo").value.trim();
+      const chave = document.getElementById("rec-chave").value.trim();
+      const tempo = document.getElementById("rec-tempo").value.trim() || "15 min";
+      const ingredientes = document.getElementById("rec-ingredientes").value.trim();
+      const preparo = document.getElementById("rec-preparo").value.trim();
+
+      if (!titulo || !chave || !ingredientes || !preparo) {
+        alert("Preencha todos os campos obrigatórios (*).");
+        return;
+      }
+
+      const novaReceita = {
+        titulo,
+        chave,
+        tempo,
+        ingredientes,
+        preparo,
+        origem: "usuario",
+        coringa: false
+      };
+
+      const salvas = JSON.parse(localStorage.getItem("smartfood_receitas_usuarios") || "[]");
+      salvas.unshift(novaReceita);
+      localStorage.setItem("smartfood_receitas_usuarios", JSON.stringify(salvas));
+
+      // Limpar formulário
+      document.getElementById("rec-titulo").value = "";
+      document.getElementById("rec-chave").value = "";
+      document.getElementById("rec-tempo").value = "";
+      document.getElementById("rec-ingredientes").value = "";
+      document.getElementById("rec-preparo").value = "";
+
+      alert("✅ Receita salva com sucesso no SmartFood!");
+      abrirAba("livro");
+    }
+
+    function renderizarLivroReceitas() {
+      const filtro = normalizar(document.getElementById("filtro-receitas").value.trim());
+      const todas = obterTodasReceitas();
+
+      const filtradas = filtro
+        ? todas.filter(r => normalizar(r.titulo).includes(filtro) || normalizar(r.chave).includes(filtro) || normalizar(r.ingredientes).includes(filtro))
+        : todas;
+
+      const container = document.getElementById("todas-receitas-lista");
+      container.innerHTML = filtradas.length > 0
+        ? filtradas.map(criarHtmlCardReceita).join("")
+        : `<p style="text-align:center; color:#6b7280; margin-top:20px;">Nenhuma receita encontrada com esse termo.</p>`;
     }
   </script>
 </body>
