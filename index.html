@@ -3,72 +3,182 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Despensa Inteligente</title>
+  <title>SmartFood - Evite o Desperdício</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body { font-family: sans-serif; max-width: 480px; margin: 30px auto; padding: 0 16px; background: #f5f7fa; color: #222; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
-    button { background: #2e7d32; color: white; border: none; font-weight: bold; cursor: pointer; }
-    button:hover { background: #1b5e20; }
-    .resultado { margin-top: 20px; padding: 14px; background: #e8f5e9; border-radius: 8px; display: none; }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #f0f4f1; color: #1f2937; margin: 0; padding: 20px 14px; display: flex; justify-content: center; }
+    .app-container { width: 100%; max-width: 440px; background: #ffffff; border-radius: 16px; padding: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    header { text-align: center; margin-bottom: 20px; }
+    header h1 { margin: 0; color: #1b5e20; font-size: 26px; }
+    header p { margin: 4px 0 0; color: #6b7280; font-size: 14px; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+    .btn-primary { background: #2e7d32; color: white; }
+    .btn-primary:hover { background: #1b5e20; }
+    .btn-stop { background: #dc2626; color: white; display: none; }
+    #reader { width: 100%; margin-top: 14px; border-radius: 12px; overflow: hidden; }
+    .etapa { display: none; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+    .produto-box { display: flex; align-items: center; gap: 12px; background: #e8f5e9; padding: 12px; border-radius: 10px; }
+    .produto-box img { width: 56px; height: 56px; object-fit: contain; border-radius: 8px; background: white; }
+    label { display: block; margin-top: 14px; font-weight: 600; font-size: 14px; }
+    input[type="date"], input[type="text"] { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; }
+    .alerta-validade { padding: 12px; border-radius: 8px; font-weight: 600; margin-bottom: 14px; }
+    .urgente { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .ok { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .receita-link { display: block; text-align: center; text-decoration: none; background: #ff6f00; color: white; padding: 13px; border-radius: 10px; font-weight: bold; margin-top: 10px; }
+    .receita-link.secundario { background: #374151; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>🥗 Evite o Desperdício</h2>
-    <p>Digite o código de barras e a validade do alimento:</p>
+  <div class="app-container">
+    <header>
+      <h1>🥗 SmartFood</h1>
+      <p>Aponte a câmera para o código de barras e evite o desperdício</p>
+    </header>
 
-    <input type="text" id="codigo" placeholder="Ex: 7891000100103" value="7891000100103">
-    <input type="date" id="validade">
-    <button onclick="buscarAlimento()">Verificar Alimento</button>
+    <!-- ETAPA 1: Câmera -->
+    <button id="btn-scan" class="btn btn-primary" onclick="iniciarCamera()">📷 Escanear Código de Barras</button>
+    <button id="btn-stop" class="btn btn-stop" onclick="pararCamera()">✖ Fechar Câmera</button>
+    <div id="reader"></div>
+    <p id="status-leitura" style="text-align:center; color:#4b5563; font-size:14px;"></p>
 
-    <div id="resultado" class="resultado"></div>
+    <!-- ETAPA 2: Alimento identificado + Data de Validade -->
+    <div id="etapa-validade" class="etapa">
+      <div id="info-produto" class="produto-box"></div>
+
+      <div id="campo-manual" style="display:none;">
+        <label for="nome-manual">Produto não encontrado na base. Qual é o alimento?</label>
+        <input type="text" id="nome-manual" placeholder="Ex: Leite condensado, Iogurte...">
+      </div>
+
+      <label for="data-validade">📅 Qual é a data de validade?</label>
+      <input type="date" id="data-validade">
+
+      <button class="btn btn-primary" onclick="mostrarReceitas()">🍳 Ver Receitas</button>
+    </div>
+
+    <!-- ETAPA 3: Sugestões de Receitas -->
+    <div id="etapa-receitas" class="etapa">
+      <div id="aviso-dias" class="alerta-validade"></div>
+      <h3 style="margin: 0 0 8px;">Receitas para aproveitar agora:</h3>
+      <div id="lista-receitas"></div>
+    </div>
   </div>
 
   <script>
-    async function buscarAlimento() {
-      const codigo = document.getElementById('codigo').value.trim();
-      const validade = document.getElementById('validade').value;
-      const box = document.getElementById('resultado');
+    let scanner = null;
+    let alimentoAtual = "";
 
-      if (!codigo) {
-        alert('Digite um código de barras!');
+    function iniciarCamera() {
+      document.getElementById("etapa-validade").style.display = "none";
+      document.getElementById("etapa-receitas").style.display = "none";
+      document.getElementById("status-leitura").innerText = "Aponte a câmera para o código de barras...";
+      document.getElementById("btn-scan").style.display = "none";
+      document.getElementById("btn-stop").style.display = "block";
+
+      scanner = new Html5Qrcode("reader");
+      scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 120 } },
+        (codigoLido) => {
+          pararCamera();
+          buscarAlimento(codigoLido);
+        },
+        () => {}
+      ).catch(() => {
+        document.getElementById("status-leitura").innerText = "⚠️ Não foi possível abrir a câmera. Permita o acesso nas configurações do navegador.";
+        document.getElementById("btn-scan").style.display = "block";
+        document.getElementById("btn-stop").style.display = "none";
+      });
+    }
+
+    function pararCamera() {
+      if (scanner) {
+        scanner.stop().then(() => {
+          scanner.clear();
+          scanner = null;
+        }).catch(() => {});
+      }
+      document.getElementById("btn-scan").style.display = "block";
+      document.getElementById("btn-stop").style.display = "none";
+    }
+
+    async function buscarAlimento(codigo) {
+      const status = document.getElementById("status-leitura");
+      status.innerText = `Código ${codigo} lido! Identificando alimento...`;
+
+      try {
+        const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${codigo}.json?fields=product_name,product_name_pt,brands,image_front_small_url`);
+        const data = await res.json();
+
+        const etapaValidade = document.getElementById("etapa-validade");
+        const infoProduto = document.getElementById("info-produto");
+        const campoManual = document.getElementById("campo-manual");
+
+        etapaValidade.style.display = "block";
+        status.innerText = "";
+
+        if (data.status === 1 && data.product) {
+          alimentoAtual = data.product.product_name_pt || data.product.product_name || "Alimento identificado";
+          const marca = data.product.brands ? ` • ${data.product.brands}` : "";
+          const img = data.product.image_front_small_url
+            ? `<img src="${data.product.image_front_small_url}" alt="Foto do produto">`
+            : "";
+
+          infoProduto.innerHTML = `${img}<div><strong>${alimentoAtual}</strong><div style="font-size:13px;color:#4b5563;">Cód: ${codigo}${marca}</div></div>`;
+          campoManual.style.display = "none";
+        } else {
+          alimentoAtual = "";
+          infoProduto.innerHTML = `<div><strong>Código lido: ${codigo}</strong><div style="font-size:13px;color:#4b5563;">Ainda não cadastrado no banco público.</div></div>`;
+          campoManual.style.display = "block";
+        }
+      } catch (e) {
+        status.innerText = "⚠️ Erro de conexão ao buscar o alimento.";
+      }
+    }
+
+    function mostrarReceitas() {
+      const validade = document.getElementById("data-validade").value;
+      const nomeDigitado = document.getElementById("nome-manual").value.trim();
+      const alimento = alimentoAtual || nomeDigitado;
+
+      if (!alimento) {
+        alert("Informe o nome do alimento para buscar receitas.");
+        return;
+      }
+      if (!validade) {
+        alert("Selecione a data de validade do alimento.");
         return;
       }
 
-      box.style.display = 'block';
-      box.innerHTML = 'Buscando alimento...';
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const dataVal = new Date(validade + "T00:00:00");
+      const dias = Math.ceil((dataVal - hoje) / (1000 * 60 * 60 * 24));
 
-      try {
-        const resposta = await fetch(`https://world.openfoodfacts.org/api/v2/product/${codigo}.json?fields=product_name,brands`);
-        const dados = await resposta.json();
-
-        if (dados.status === 1 && dados.product) {
-          const nome = dados.product.product_name || 'Produto sem nome cadastrado';
-          const marca = dados.product.brands || '';
-
-          let textoValidade = '';
-          if (validade) {
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            const dataVal = new Date(validade + 'T00:00:00');
-            const dias = Math.ceil((dataVal - hoje) / (1000 * 60 * 60 * 24));
-            textoValidade = dias >= 0
-              ? `<p>⏳ Vence em <strong>${dias} dia(s)</strong>.</p>`
-              : `<p>⚠️ Este alimento já venceu há ${Math.abs(dias)} dia(s)!</p>`;
-          }
-
-          box.innerHTML = `
-            <h3>${nome} ${marca ? `(${marca})` : ''}</h3>
-            ${textoValidade}
-            <a href="https://www.tudogostoso.com.br/busca?q=${encodeURIComponent(nome)}" target="_blank">Ver receitas com ${nome} →</a>
-          `;
-        } else {
-          box.innerHTML = '❌ Produto não encontrado na base de dados. Tente outro código!';
-        }
-      } catch (erro) {
-        box.innerHTML = '⚠️ Erro ao buscar o produto. Verifique sua internet.';
+      const aviso = document.getElementById("aviso-dias");
+      if (dias < 0) {
+        aviso.className = "alerta-validade urgente";
+        aviso.innerText = `⚠️ Atenção: este alimento venceu há ${Math.abs(dias)} dia(s). Verifique se ainda está próprio para consumo.`;
+      } else if (dias <= 3) {
+        aviso.className = "alerta-validade urgente";
+        aviso.innerText = `⏳ Urgente: vence em ${dias} dia(s)! Ideal preparar hoje.`;
+      } else {
+        aviso.className = "alerta-validade ok";
+        aviso.innerText = `✅ Vence em ${dias} dia(s). Veja ideias para já ir planejando:`;
       }
+
+      const termo = encodeURIComponent(alimento);
+      document.getElementById("lista-receitas").innerHTML = `
+        <a class="receita-link" href="https://www.tudogostoso.com.br/busca?q=${termo}" target="_blank">
+          🍽️ Ver receitas com ${alimento} (TudoGostoso)
+        </a>
+        <a class="receita-link secundario" href="https://www.google.com/search?q=receitas+faceis+com+${termo}" target="_blank">
+          🔎 Buscar receitas rápidas no Google
+        </a>
+      `;
+
+      document.getElementById("etapa-receitas").style.display = "block";
     }
   </script>
 </body>
